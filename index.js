@@ -86,3 +86,17 @@ app.get("/movies/:pk", (req, res)=>{
         })
 })
 app.listen(5000, ()=>{console.log("app is running on port 5000")})
+
+app.get("/TransactType",(req,res)=>{
+    db.executeQuery(`SELECT * 
+    FROM TransactType
+    WHERE Quantity = 1;`)
+
+    .then((result)=>{
+        res.status(200).send(result)
+        
+    })
+    .catch((err)=>{console.log(err)
+    res.status(500).send()
+})
+})
