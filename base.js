@@ -1,10 +1,7 @@
 const express = require('express')
 const bcrypt = require('bcryptjs')
-const jwt = require('jsonwebtoken')
 
 const db = require('./dbConnectExec.js')
-const config = require('./config.js')
-
 const app = express();
 app.use(express.json())
 
@@ -12,70 +9,6 @@ app.get("/hi",(req,res)=>{
     res.send("hello world")
 })
 
-app.post("/contacts/login", async (req,res)=>{
-    // console.log(req.body)
-
-    var email = req.body.email;
-    var password = req.body.password;
-
-    if(!email || !password){
-        return res.status(400).send('bad response')
-    }
-
-    //1. check that user email exists in db
-    var query =`SELECT * 
-    FROM Contact 
-    WHERE Email = '${email}`
-
-    let result;
-
-    try{
-        result = await db.executeQuery(query)
-    }catch(myError){
-        console.log('error in /contacts/login', myError)
-        return res. status(500).send()
-    }
-
-    // conosole.log(result)
-    if(!result[0]){return res.status(400).send('invalid user credentials')}
-
-    //2. check their password
-
-    let user = result[0]
-    // console.log(user)
-
-    if(!bcrypt.compareSync(password, user.Password)){
-        console.log("invalid password");
-        return res.status(400).send("invalid user credentials")
-    }
-
-    //3. generate a token
-    let token = jwt.sign({pk: user.ContactPK}, config.JWT, {expiresIn: '60 minutes'})
-
-    console.log(token)
-    //4. save the token in db and send token and user info back to user
-    let setTokenQuery = `UPDATE Contact
-    SET Token = '${token}' WHERE ContactPK = ${user.ContactPK}`
-
-    try{
-        await db.executeQuery(setTokenQuery)
-
-        Res.status(200).send({
-            token: token,
-            user: {
-                NameFirst: user.NameFirst,
-                NameLast: user.NameLast,
-                Email: user.Email,
-                ContactPK: user.ContactPK
-            }
-        })
-    }
-    catch(myError){
-        console.log("error setting user toekn", myError)
-    }
-    
-
-})
 
 app.post("/contacts", async (req,res)=>{
     // res.send("creating user")
@@ -155,10 +88,9 @@ app.get("/movies/:pk", (req, res)=>{
 })
 app.listen(5000, ()=>{console.log("app is running on port 5000")})
 
-app.get("/TransactType",(req,res)=>{
+app.get("/Location",(req,res)=>{
     db.executeQuery(`SELECT * 
-    FROM TransactType
-    WHERE Quantity = 1;`)
+    FROM Location`)
 
     .then((result)=>{
         res.status(200).send(result)
