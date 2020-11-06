@@ -9,12 +9,11 @@ app.get("/hi",(req,res)=>{
 })
 
 
-app.get("/workplaces", (req,res)=>{
+app.get("/Location", (req,res)=>{
     //get data from database
     db.executeQuery(`SELECT *
-    FROM Workplace
-    LEFT JOIN Industry
-    ON Industry.IndustryPK = Workplace.IndustryFK`)
+    FROM Location
+    `)
     .then((result)=>{
         res.status(200).send(result)
     })
