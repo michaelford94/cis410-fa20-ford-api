@@ -16,7 +16,7 @@ const app = express();
 app.use(express.json())
 app.use(cors())
 
-//Test
+//TEST
 app.get("/hi",(req,res)=>{
     res.send("hello world")
 })
@@ -73,6 +73,7 @@ app.post("/contacts", async (req,res)=>{
     var email = req.body.email;
     var password = req.body.password;
 
+    //Validation to make sure all fields are provided
     if(!nameFirst || !nameLast || !email || !password){
         return res.status(400).send("bad request")
     }
