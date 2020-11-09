@@ -113,7 +113,45 @@ app.post("/contacts", async (req,res)=>{
 
 
 
+//QUESTION 5 -- What is the POST link to logout a user?
 
+
+
+//QUESTION 6 -- What is the POST link to create a transaction?
+app.post("/TransactType", auth, async (req,res)=>{
+
+//Route protected by authenitcated middleware in code above
+
+    try{ 
+        var ProductPK = req.body.ProductPK;
+        var OrderNumber = req.body.OrderNumber;
+        var Date = req.body.Date;
+        var Quantity = req.body.Quantity;
+    
+        //Make sure all routes are required
+        if(!ProductPK || !OrderNumber || !Date || !Quantity){res.status(400).send("bad request")}
+
+        OrderNumber = OrderNumber.replace("'","''")
+    
+        // console.log("here is the contact in /reviews",req.contact)
+        // res.send("here is your response")
+
+        let insertQuery = `INSERT INTO TransactType(ProductPK, OrderNumber, Date, Quantity, ContactFK)
+        OUTPUT inserted.ProductPK, inserted.OrderNumber, inserted.Date, inserted.Quantity
+        VALUES('${ProductPK}','${OrderNumber}','${Date}', '${Quantity}', ${req.contact.ContactPK})`
+
+        let insertedTransact = await db.executeQuery(insertQuery)
+
+        //Record is sucessfully written to database
+        res.status(201).send(insertedTransact[0])
+    }
+    catch(error){
+        console.log("error in POST /TransactType", error);
+        res.status(500).send()
+    }
+})
+
+//QUESTION 7 -- What is the GET route to get all transactions (events/orders) records for a user?
 
 
 
