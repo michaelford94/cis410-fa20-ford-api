@@ -3,6 +3,5 @@
         "node_modules{,/**}",
         ".vscode{,/**}"
     ],
-    "appService.defaultWebAppToDeploy": "/subscriptions/7a21e6fa-57e3-4bb3-8b3e-33d983333d6e/resourceGroups/appsvc_linux_centralus/providers/Microsoft.Web/sites/cis410-fa20-gilmore-ford-api",
     "appService.deploySubpath": "."
 }

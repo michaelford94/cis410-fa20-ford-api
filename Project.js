@@ -46,7 +46,8 @@ app.get("/Location/:pk", (req, res)=>{
     `SELECT *
     FROM Location
     LEFT JOIN BikeType
-    ON BikeType.ProductPK = Location.ProductPK = ${pk}`
+    ON BikeType.ProductPK = Location.ProductPK 
+    WHERE LocationPK = ${pk}`
 
     db.executeQuery(myQuery)
         .then((Location)=>{
