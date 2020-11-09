@@ -219,3 +219,17 @@ app.get("/TransactType",(req,res)=>{
     res.status(500).send()
 })
 })
+
+app.get("/Location", (req,res)=>{
+    //get data from database
+    db.executeQuery(`SELECT *
+    FROM Location
+    `)
+    .then((result)=>{
+        res.status(200).send(result)
+    })
+    .catch((err)=>{
+        console.log(err);
+        res.status(500).send()
+    })
+})
