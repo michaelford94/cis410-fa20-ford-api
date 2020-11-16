@@ -17,17 +17,15 @@ app.use(express.json())
 app.use(cors())
 
 //TEST
-app.get("/hi",(req,res)=>{
-    res.send("hello world")
-})
+app.get("/", (req,res)=>{res.send("Hello world.")})
 
 //QUESTION 1 -- What is the link to GET the data entity?
-app.get("/Location", (req,res)=>{
+app.get("/Workplace", (req,res)=>{
     //get data from database
     db.executeQuery(`SELECT *
-    FROM Location
-    LEFT JOIN BikeType
-    ON BikeType.ProductPK = Location.ProductPK`)
+    FROM Workplace
+    LEFT JOIN Industry
+    ON Industry.IndustryPK = Workplace.WorkplacePK`)
     .then((result)=>{
         res.status(200).send(result)
     })
@@ -38,34 +36,37 @@ app.get("/Location", (req,res)=>{
 })
 
 //QUESTION 2 -- What is the link to GET a particular record in your data entity?
-app.get("/Location/:pk", (req, res)=>{
+app.get("/Workplace/:pk", (req, res)=>{
     var pk = req.params.pk
     // console.log("my PK:" , pk)
 
     var myQuery = 
     `SELECT *
-    FROM Location
-    LEFT JOIN BikeType
-    ON BikeType.ProductPK = Location.ProductPK 
-    WHERE LocationPK = ${pk}`
+    FROM Workplace
+    LEFT JOIN Industry
+    ON Industry.IndustryPK = Workplace.WorkplacePK
+    WHERE WorkplacePK = ${pk}`
 
     db.executeQuery(myQuery)
-        .then((Location)=>{
-            // console.log("Movies: ", movies)
+        .then((Workplace)=>{
 
-            if(Location[0]){
-                res.send(Location[0])
+            if(Workplace[0]){
+                res.send(Workplace[0])
             }else{res.status(404).send('bad request')}
         })
         .catch((err)=>{
-            console.log("Error in /Location/pk", err)
+            console.log("Error in /Workplace/pk", err)
             res.status(500).send()
         })
 })
 
 //QUESTION 3 -- What is the link to POST a new user?
+<<<<<<< HEAD
 
 app.post("/customers", async (req,res)=>{
+=======
+app.post("/JobSeeker", async (req,res)=>{
+>>>>>>> 021a638e5261eefef9a8f9921503b37f4cd33f3e
     // res.send("creating user")
     // console.log("request body", req.body)
 
@@ -74,38 +75,47 @@ app.post("/customers", async (req,res)=>{
     var email = req.body.email;
     // var password = req.body.password;
 
+<<<<<<< HEAD
     //Validation to make sure all fields are provided
     if(!nameFirst || !nameLast || !email){
+=======
+    if(!nameFirst || !nameLast || !email || !password){
+>>>>>>> 021a638e5261eefef9a8f9921503b37f4cd33f3e
         return res.status(400).send("bad request")
     }
 
     nameFirst = nameFirst.replace("'","''")
     nameLast = nameLast.replace("'","''")
 
+<<<<<<< HEAD
     var emailCheckQuery = `SELECT email
     FROM Customer
+=======
+    //Checking for exisitng email
+    var emailCheckQuery = `SELECT Email
+    FROM JobSeeker
+>>>>>>> 021a638e5261eefef9a8f9921503b37f4cd33f3e
     WHERE Email = '${email}'`
 
     var existingUser = await db.executeQuery(emailCheckQuery)
 
-    //This prevents users from registering with a duplicate email
     if(existingUser[0]){
         return res.status(409).send('Please enter a different email.')
     }
 
-    //Password is hashed
+    //Hashed password
     var hashedPassword = bcrypt.hashSync(password)
 
-    var insertQuery = `INSERT INTO contact(NameFirst,NameLast,Email,Password)
+    var insertQuery = `INSERT INTO JobSeeker(NameFirst,NameLast,Email,Password)
     VALUES('${nameFirst}','${nameLast}','${email}','${hashedPassword}')`
 
-    //New user is written to database
+    //New user written to database
     db.executeQuery(insertQuery)
-
-        //sends a sucessfull 201 repsonse
+    
+        //Sends sucessfull 201 response
         .then(()=>{res.status(201).send()})
         .catch((err)=>{
-            console.log("error in POST /contacts",err)
+            console.log("error in POST /JobSeeker",err)
             res.status(500).send()
         })
 })
@@ -115,42 +125,23 @@ app.post("/customers", async (req,res)=>{
 
 
 //QUESTION 5 -- What is the POST link to logout a user?
+app.post('/JobSeeker/logout', auth, (req,res)=>{
+    var query = `UPDATE JobSeeker
+    SET Token = NULL
+    WHERE JobSeekerPK = ${req.contact.ContactPK}`
 
-
+    db.executeQuery(query)
+        .then(()=>{res.status(200).send()})
+        .catch((error)=>{
+            console.log("error in POST /JobSeeker/logout", error)
+            res.status(500).send()
+    })
+})
 
 //QUESTION 6 -- What is the POST link to create a transaction?
-app.post("/TransactType", auth, async (req,res)=>{
 
-//Route protected by authenitcated middleware in code above
 
-    try{ 
-        var ProductPK = req.body.ProductPK;
-        var OrderNumber = req.body.OrderNumber;
-        var Date = req.body.Date;
-        var Quantity = req.body.Quantity;
-    
-        //Make sure all routes are required
-        if(!ProductPK || !OrderNumber || !Date || !Quantity){res.status(400).send("bad request")}
 
-        OrderNumber = OrderNumber.replace("'","''")
-    
-        // console.log("here is the contact in /reviews",req.contact)
-        // res.send("here is your response")
-
-        let insertQuery = `INSERT INTO TransactType(ProductPK, OrderNumber, Date, Quantity, ContactFK)
-        OUTPUT inserted.ProductPK, inserted.OrderNumber, inserted.Date, inserted.Quantity
-        VALUES('${ProductPK}','${OrderNumber}','${Date}', '${Quantity}', ${req.contact.ContactPK})`
-
-        let insertedTransact = await db.executeQuery(insertQuery)
-
-        //Record is sucessfully written to database
-        res.status(201).send(insertedTransact[0])
-    }
-    catch(error){
-        console.log("error in POST /TransactType", error);
-        res.status(500).send()
-    }
-})
 
 //QUESTION 7 -- What is the GET route to get all transactions (events/orders) records for a user?
 
