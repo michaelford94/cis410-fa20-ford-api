@@ -65,17 +65,17 @@ app.get("/Location/:pk", (req, res)=>{
 
 //QUESTION 3 -- What is the link to POST a new user?
 
-app.post("/contacts", async (req,res)=>{
+app.post("/customers", async (req,res)=>{
     // res.send("creating user")
     // console.log("request body", req.body)
 
     var nameFirst = req.body.nameFirst;
     var nameLast = req.body.nameLast;
     var email = req.body.email;
-    var password = req.body.password;
+    // var password = req.body.password;
 
     //Validation to make sure all fields are provided
-    if(!nameFirst || !nameLast || !email || !password){
+    if(!nameFirst || !nameLast || !email){
         return res.status(400).send("bad request")
     }
 
@@ -83,8 +83,8 @@ app.post("/contacts", async (req,res)=>{
     nameLast = nameLast.replace("'","''")
 
     var emailCheckQuery = `SELECT email
-    FROM contact
-    WHERE email = '${email}'`
+    FROM Customer
+    WHERE Email = '${email}'`
 
     var existingUser = await db.executeQuery(emailCheckQuery)
 
