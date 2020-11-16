@@ -225,10 +225,25 @@ app.post("/applications", auth, async (req,res)=>{
 
 //QUESTION 7 -- What is the GET route to get all transactions (events/orders) records for a user?
 
-app.get("/jobseeker/me", auth, (req,res)=>{
-    res.send(req.jobseeker)
+app.get("/application/me", auth, async(req,res)=>{
+    let JobSeekerPK = req.jobseeker.JobSeekerPK;
+
+    var meQuery = `SELECT *
+    FROM Application
+    LEFT JOIN JobSeeker
+    ON JobSeeker.JobSeekerPK = Application.JobSeekerFK
+    WHERE JobSeekerPK = ${JobSeekerPK}`
+    
+    db.executeQuery(meQuery)
+    .then((result)=>{res.status(200).send(result)})
+        .catch((error)=>{
+            console.log("error in POST /jobseeker/logout", error)
+            res.status(500).send()
+        })
+
+
 })
 
 
 const PORT = process.env.PORT || 5000
-app.listen(PORT,()=>{console.log(`app is running on port ${PORT}`)})
+app.listen(PORT,()=>{console.log(`app is running on port ${PORT}`)});
