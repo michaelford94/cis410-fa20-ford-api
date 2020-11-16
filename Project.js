@@ -20,12 +20,12 @@ app.use(cors())
 app.get("/", (req,res)=>{res.send("Hello world.")})
 
 //QUESTION 1 -- What is the link to GET the data entity?
-app.get("/Workplace", (req,res)=>{
+app.get("/workplaces", (req,res)=>{
     //get data from database
     db.executeQuery(`SELECT *
     FROM Workplace
     LEFT JOIN Industry
-    ON Industry.IndustryPK = Workplace.WorkplacePK`)
+    ON Industry.IndustryPK = Workplace.IndustryFK`)
     .then((result)=>{
         res.status(200).send(result)
     })
@@ -36,26 +36,26 @@ app.get("/Workplace", (req,res)=>{
 })
 
 //QUESTION 2 -- What is the link to GET a particular record in your data entity?
-app.get("/Workplace/:pk", (req, res)=>{
+app.get("/workplaces/:pk", (req, res)=>{
     var pk = req.params.pk
     // console.log("my PK:" , pk)
 
-    var myQuery = 
-    `SELECT *
+    var myQuery = `SELECT *
     FROM Workplace
     LEFT JOIN Industry
-    ON Industry.IndustryPK = Workplace.WorkplacePK
-    WHERE WorkplacePK = ${pk}`
+    ON Industry.IndustryPK = Workplace.IndustryFK
+    WHERE workplacePk = ${pk}`
 
     db.executeQuery(myQuery)
-        .then((Workplace)=>{
+        .then((workplace)=>{
+            // console.log("Movies: ", movies)
 
-            if(Workplace[0]){
-                res.send(Workplace[0])
+            if(workplace[0]){
+                res.send(workplace[0])
             }else{res.status(404).send('bad request')}
         })
         .catch((err)=>{
-            console.log("Error in /Workplace/pk", err)
+            console.log("Error in /movies/pk", err)
             res.status(500).send()
         })
 })
