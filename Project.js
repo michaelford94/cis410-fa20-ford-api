@@ -234,7 +234,31 @@ app.get("/application/me", auth, async(req,res)=>{
             res.status(500).send()
         })
 
+<<<<<<< HEAD
+=======
+app.get("/application/me", auth, async(req,res)=>{
+    let JobSeekerPK = req.jobseeker.JobSeekerPK;
+
+    var meQuery = `SELECT *
+    FROM Application
+    LEFT JOIN JobSeeker
+    ON JobSeeker.JobSeekerPK = Application.JobSeekerFK
+    WHERE JobSeekerPK = ${JobSeekerPK}`
+    
+    db.executeQuery(meQuery)
+    .then((result)=>{res.status(200).send(result)})
+        .catch((error)=>{
+            console.log("error in POST /jobseeker/logout", error)
+            res.status(500).send()
+        })
+
+
+>>>>>>> c1ca86861fb05a97efa983f9515cda445d56b400
 })
 
 const PORT = process.env.PORT || 5000
+<<<<<<< HEAD
 app.listen(PORT,()=>{console.log(`app is running on port ${PORT}`)});
+=======
+app.listen(PORT,()=>{console.log(`app is running on port ${PORT}`)});
+>>>>>>> c1ca86861fb05a97efa983f9515cda445d56b400
