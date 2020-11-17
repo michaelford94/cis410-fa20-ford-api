@@ -21,6 +21,7 @@ app.get("/", (req,res)=>{res.send("Hello world.")})
 
 //QUESTION 1 -- What is the link to GET the data entity?
 app.get("/workplaces", (req,res)=>{
+
     //get data from database
     db.executeQuery(`SELECT *
     FROM Workplace
@@ -48,7 +49,6 @@ app.get("/workplaces/:pk", (req, res)=>{
 
     db.executeQuery(myQuery)
         .then((workplace)=>{
-            // console.log("Movies: ", movies)
 
             if(workplace[0]){
                 res.send(workplace[0])
@@ -62,14 +62,13 @@ app.get("/workplaces/:pk", (req, res)=>{
 
 //QUESTION 3 -- What is the link to POST a new user?
     app.post("/jobseeker", async (req,res)=>{
-        //res.send("creating jobseeker");
-        //console.log("request body", req.body)
     
         var nameFirst= req.body.nameFirst;
         var nameLast = req.body.nameLast;
         var email = req.body.email;
         var password = req.body.password;
     
+        //Validation to make sure all fields are provided below
         if(!nameFirst || !nameLast || !email || !password){
             return res.status(400).send("Bad Request")
         }
@@ -83,16 +82,18 @@ app.get("/workplaces/:pk", (req, res)=>{
     
         var existingUser = await db.executeQuery(emailCheckQuery);
     
-        //console.log("existing user", existingUser)
+        //Validation in place to prevent duplicate email below
         if(existingUser[0]){
             return res.status(409).send("Please enter a different email")
         }
     
+        //Passwords hashed below
         var hashedPassword = bcrypt.hashSync(password)
         var insertQuery = `INSERT INTO JobSeeker(NameFirst,NameLast,Email,Password)
         VALUES('${nameFirst}','${nameLast}', '${email}','${hashedPassword}')
         `
-    
+        //New user written to database below
+        //Sends successfull 201 repsonse below
         db.executeQuery(insertQuery)
             .then(()=>{res.status(201).send()})
             .catch((err)=>{
@@ -102,7 +103,6 @@ app.get("/workplaces/:pk", (req, res)=>{
     })
 
 //QUESTION 4 -- What is the POST API to login a user? 
-
 app.post("/jobseeker/login", async (req,res)=>{
     //console.log(req.body)
 
@@ -113,7 +113,7 @@ app.post("/jobseeker/login", async (req,res)=>{
         return res.status(400).send("Bad Request");
     }
 
-    //1. check that user email exists in the database
+    //Check that user email exists in the database
     var query = `SELECT *
     FROM JobSeeker 
     WHERE Email = '${email}'`
@@ -128,26 +128,20 @@ app.post("/jobseeker/login", async (req,res)=>{
         return res.status(500).send();
     }
 
-    // console.log(result);
-
     if(!result[0]){
         return res.status(400).send("Invalid User Credentials")
     }
 
-    //2. check their password  
+    //check their password  
 
     let user = result[0];
-    // console.log(user);
 
     if(!bcrypt.compareSync(password, user.Password)){
         console.log("Invalid Password");
         return res.status(400).send("Invalid User Credentials");
     }
-    //3. generate a token
-    
+    //Token is generated and has an expiration of 60 minutes below
     let token = jwt.sign({pk: user.JobSeekerPK}, config.JWT, {expiresIn: "60 minutes"})
-
-    //console.log(token)
 
     //4. Save token in db and send token and user info back to user 
     let setTokenQuery = `UPDATE JobSeeker
@@ -168,13 +162,15 @@ app.post("/jobseeker/login", async (req,res)=>{
         })
     }
     catch(myError){
-        console.log("error setting user token", myError);
+        console.log("Error credentials are invalid", myError);
         res.status(500).send()
     }
 
 })
 
 //QUESTION 5 -- What is the POST link to logout a user?
+//Route protected by auth middleware below
+//Token set to NULL in database below
 app.post("/jobseeker/logout", auth, (req,res)=>{
     var query = `UPDATE JobSeeker
     SET Token = NULL
@@ -183,13 +179,13 @@ app.post("/jobseeker/logout", auth, (req,res)=>{
     db.executeQuery(query)
         .then(()=>{res.status(200).send()})
         .catch((error)=>{
-            console.log("error in POST /jobseeker/logout", error)
+            console.log("Error in POST /jobseeker/logout", error)
             res.status(500).send()
         })
 })
 
 //QUESTION 6 -- What is the POST link to create a transaction?
-
+//Route protected by auth middleware below
 app.post("/applications", auth, async (req,res)=>{
 
     try{
@@ -197,38 +193,48 @@ app.post("/applications", auth, async (req,res)=>{
         var about = req.body.about;
         var dateApplied = req.body.dateApplied;
     
+        //Route uses validation to make sure all fields are required below
         if(!workplaceFK || !about || !dateApplied){res.status(400).send("Bad Request")}
 
         about = about.replace("'","''")
-    
-        // console.log("Here is the jobseeker in /applications", req.jobseeker)
-        // res.send("Here is your response")
 
         let insertQuery = `INSERT INTO Application(About, DateApplied, WorkplaceFK, JobSeekerFK)
         OUTPUT inserted.ApplicationPK, inserted.About, inserted.DateApplied, inserted.JobSeekerFK
         VALUES('${about}', '${dateApplied}', ${workplaceFK}, ${req.jobseeker.JobSeekerPK})`
 
+        //Record is sucessfully written below
         let insertedApplication = await db.executeQuery(insertQuery)
         
-        
-        //console.log(insertedApplication);
-        
-        
+        //Sucessfull repsonse includes transaction record below
         res.status(201).send(insertedApplication[0])    
     }
     catch(error){
-        console.log("error in POST /applications", error)
+        console.log("Error in POST /applications", error)
         res.status(500).send();
     } 
 })
 
-
 //QUESTION 7 -- What is the GET route to get all transactions (events/orders) records for a user?
+//Route protected by auth middleware below
+app.get("/application/me", auth, async(req,res)=>{
+    let JobSeekerPK = req.jobseeker.JobSeekerPK;
 
-app.get("/jobseeker/me", auth, (req,res)=>{
-    res.send(req.jobseeker)
+    //Route returns all records asociated below
+    //Response includes JOIN data below
+    var meQuery = `SELECT *
+    FROM Application
+    LEFT JOIN JobSeeker
+    ON JobSeeker.JobSeekerPK = Application.JobSeekerFK
+    WHERE JobSeekerPK = ${JobSeekerPK}`
+    
+    db.executeQuery(meQuery)
+    .then((result)=>{res.status(200).send(result)})
+        .catch((error)=>{
+            console.log("error in POST /jobseeker/logout", error)
+            res.status(500).send()
+        })
+
 })
 
-
 const PORT = process.env.PORT || 5000
-app.listen(PORT,()=>{console.log(`app is running on port ${PORT}`)})
+app.listen(PORT,()=>{console.log(`app is running on port ${PORT}`)});
